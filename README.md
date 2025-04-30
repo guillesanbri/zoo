@@ -1,6 +1,6 @@
 # zoo - Deep Learning Models and Experiments
 
-A collection of Deep Learning models implementations and experiments.
+A collection of Deep Learning models and experiments.
 
 - [Overview](#overview)
 - [Models](#models)
@@ -18,11 +18,14 @@ This repository contains:
 
 ## Models
 
+### [Dynamic Tanh (DyT)](models/dyt.py)
+A custom normalization layer from ["Transformers without Normalization"](https://arxiv.org/abs/2503.10622) that leverages a parameterized tanh function. This can be used as an alternative to Normalization Layers.
+
 ### [Vision Transformer (ViT)](models/vit.py)
 A minimal implementation of the Vision Transformer architecture as described in the ["An Image is Worth 16x16 Words"](https://arxiv.org/abs/2010.11929) paper.
 
-### [Dynamic Tanh (DyT)](models/dyt.py)
-A custom normalization layer from ["Transformers without Normalization"](https://arxiv.org/abs/2503.10622) that leverages a parameterized tanh function. This can be used as an alternative to Normalization Layers.
+### [Unet3D](models/unet3d.py)
+U-Net based model using 3D convolutions for regression on spatiotemporal data. Follows the implementation proposed in ["3D U-Net: Learning Dense Volumetric Segmentation from Sparse Annotation"](https://arxiv.org/abs/1606.06650)
 
 ## Experiments
 
