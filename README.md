@@ -18,13 +18,11 @@ This repository contains:
 
 ## Models
 
-### Vision Transformer (ViT)
+### [Vision Transformer (ViT)](models/vit.py)
+A minimal implementation of the Vision Transformer architecture as described in the ["An Image is Worth 16x16 Words"](https://arxiv.org/abs/2010.11929) paper.
 
-A minimal implementation of the Vision Transformer architecture as described in the "An Image is Worth 16x16 Words" paper.
-
-### Dynamic Tanh (DyT)
-
-A custom normalization layer that leverages a parameterized tanh function. This can be used as an alternative to Normalization Layers.
+### [Dynamic Tanh (DyT)](models/dyt.py)
+A custom normalization layer from ["Transformers without Normalization"](https://arxiv.org/abs/2503.10622) that leverages a parameterized tanh function. This can be used as an alternative to Normalization Layers.
 
 ## Experiments
 
@@ -46,4 +44,4 @@ zoo/
 ```
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License, see the [LICENSE](LICENSE) file for details.
