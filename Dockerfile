@@ -1,4 +1,3 @@
-
 FROM pytorch/pytorch:2.6.0-cuda12.6-cudnn9-runtime
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -15,7 +14,7 @@ RUN apt-get clean
 
 RUN python3 -m pip install --upgrade pip
 RUN python3 -m pip install torch torchvision torchaudio
-RUN python3 -m pip install timm requests wandb transformers black
+RUN python3 -m pip install timm requests wandb transformers black matplotlib
 
 RUN addgroup --gid $GROUP_ID user
 RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID user
