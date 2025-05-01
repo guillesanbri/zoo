@@ -44,7 +44,11 @@ zoo/
 ├── Dockerfile            # Docker configuration
 ├── train_*.py            # Training script(s)
 └── utils.py              # Utility functions
+└── vis.py                # Visualization functions
 ```
+
+
+
 ## License
 
 This project is licensed under the MIT License, see the [LICENSE](LICENSE) file for details.
