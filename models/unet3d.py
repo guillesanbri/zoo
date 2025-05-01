@@ -68,6 +68,7 @@ class UNet3D(nn.Module):
     UNet with 3D convolutions adapted to seq-to-seq image generation.
     Input/output shape: [Batch, Channels, Time/depth, Height, Width]
     """
+
     # TODO: Compare both bilinear interpolation and transpose convolutions to upscale
     # TODO: Compare batchnorm to group norm
     # TODO: Compare with and without downsampling the time dimension
@@ -76,7 +77,7 @@ class UNet3D(nn.Module):
     def __init__(
         self,
         in_channels: int,
-        n_classes: int = 1,
+        num_classes: int = 1,
         depth: int = 4,
         first_layer_features: int = 32,
         conv_kernel_size: int = 3,
@@ -111,7 +112,7 @@ class UNet3D(nn.Module):
             _decoder_blocks.append(DecoderBlock(in_c, out_c, conv_kernel_size))
         self.decoder_blocks = nn.ModuleList(_decoder_blocks)
 
-        self.final_conv = nn.Conv3d(first_layer_features, n_classes, 1)
+        self.final_conv = nn.Conv3d(first_layer_features, num_classes, 1)
         self.final_activation = final_activation
 
     def forward(self, x):
