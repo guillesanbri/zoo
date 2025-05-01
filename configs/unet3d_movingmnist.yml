@@ -1,0 +1,21 @@
+---
+wandb:
+  project: "movingmnist"
+
+train:
+  output_dir: "./outputs/checkpoints/movingmnist"
+  # resume_from_checkpoint: "./checkpoint_path.pth"
+  checkpoint_every_x_epochs: 25
+  device: "cuda"
+  num_workers: 4
+  batch_size: 16
+  epochs: 100
+  warmup_epochs: 10
+  lr: 1.0e-4
+  
+model:
+  architecture: "unet3d"
+  in_channels: 1
+  num_classes: 1
+  depth: 4
+  first_layer_features: 64
