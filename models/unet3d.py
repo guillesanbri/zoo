@@ -47,7 +47,6 @@ class DecoderBlock(nn.Module):
         up: str = "interpolate",
     ):
         super().__init__()
-
         assert up in ["interpolate", "conv"], "up must be 'interpolate' or 'conv'"
         self.up = up
         if self.up == "conv":
@@ -121,7 +120,9 @@ class UNet3D(nn.Module):
         for i in range(len(self.features) - 1, 1, -1):
             in_c = self.features[i]
             out_c = self.features[i - 1]
-            _decoder_blocks.append(DecoderBlock(in_c, out_c, conv_kernel_size, up))
+            _decoder_blocks.append(
+                DecoderBlock(in_c, out_c, conv_kernel_size, pool_kernel_size, up)
+            )
         self.decoder_blocks = nn.ModuleList(_decoder_blocks)
 
         self.final_conv = nn.Conv3d(self.features[1], num_classes, 1)
