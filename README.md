@@ -25,7 +25,7 @@ A custom normalization layer from ["Transformers without Normalization"](https:/
 A minimal implementation of the Vision Transformer architecture as described in the ["An Image is Worth 16x16 Words"](https://arxiv.org/abs/2010.11929) paper.
 
 ### [Unet3D](models/unet3d.py)
-U-Net based model using 3D convolutions for regression on spatiotemporal data. Follows the implementation proposed in ["3D U-Net: Learning Dense Volumetric Segmentation from Sparse Annotation"](https://arxiv.org/abs/1606.06650)
+U-Net based model using 3D convolutions for regression on spatiotemporal data. Follows the implementation proposed in ["3D U-Net: Learning Dense Volumetric Segmentation from Sparse Annotation"](https://arxiv.org/abs/1606.06650) and includes residual connection in the encoder and decoder blocks.
 
 ## Experiments
 

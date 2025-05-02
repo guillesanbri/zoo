@@ -13,6 +13,7 @@ class EncoderBlock(nn.Module):
         conv_kernel_size: Union[int, Tuple[int, int, int]],
         pool_kernel_size: Union[int, Tuple[int, int, int]],
         downsample: bool = True,
+        residual_block: bool = True,
     ):
         super().__init__()
         self.downsample = downsample
@@ -20,6 +21,11 @@ class EncoderBlock(nn.Module):
             nn.MaxPool3d(kernel_size=pool_kernel_size, stride=pool_kernel_size)
             if downsample
             else nn.Identity()
+        )
+
+        self.residual_block = residual_block
+        self.residual_1x1 = (
+            nn.Conv3d(in_channels, out_channels, 1) if residual_block else nn.Identity()
         )
 
         self.double_conv = nn.Sequential(
@@ -33,7 +39,10 @@ class EncoderBlock(nn.Module):
 
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         x = self.pool(x)
+        residual = self.residual_1x1(x)
         x = self.double_conv(x)
+        if self.residual_block:
+            x = x + residual
         return x
 
 
@@ -45,6 +54,7 @@ class DecoderBlock(nn.Module):
         conv_kernel_size: Union[int, Tuple[int, int, int]],
         pool_kernel_size: Union[int, Tuple[int, int, int]],
         up: str = "interpolate",
+        residual_block: bool = True,
     ):
         super().__init__()
         assert up in ["interpolate", "conv"], "up must be 'interpolate' or 'conv'"
@@ -60,6 +70,11 @@ class DecoderBlock(nn.Module):
             in_channels = out_channels * 2
         elif self.up == "interpolate":
             in_channels = in_channels + out_channels
+
+        self.residual_block = residual_block
+        self.residual_1x1 = (
+            nn.Conv3d(in_channels, out_channels, 1) if residual_block else nn.Identity()
+        )
 
         self.double_conv = nn.Sequential(
             nn.Conv3d(in_channels, out_channels, conv_kernel_size, padding=1),
@@ -77,7 +92,10 @@ class DecoderBlock(nn.Module):
         size = skip.size()[2:]
         x = F.interpolate(x, size=size, mode="nearest")
         x = torch.cat((skip, x), dim=1)
+        residual = self.residual_1x1(x)
         x = self.double_conv(x)
+        if self.residual_block:
+            x = x + residual
         return x
 
 
@@ -99,6 +117,7 @@ class UNet3D(nn.Module):
         pool_kernel_size: int = 2,
         final_activation: Optional[Callable] = None,
         up: str = "interpolate",
+        residual_blocks: bool = True,
     ):
         super().__init__()
         self.features = [in_channels, *features]
@@ -111,7 +130,12 @@ class UNet3D(nn.Module):
             out_c = self.features[i + 1]
             _encoder_blocks.append(
                 EncoderBlock(
-                    in_c, out_c, conv_kernel_size, pool_kernel_size, downsample
+                    in_c,
+                    out_c,
+                    conv_kernel_size,
+                    pool_kernel_size,
+                    downsample,
+                    residual_blocks,
                 )
             )
         self.encoder_blocks = nn.ModuleList(_encoder_blocks)
@@ -121,7 +145,9 @@ class UNet3D(nn.Module):
             in_c = self.features[i]
             out_c = self.features[i - 1]
             _decoder_blocks.append(
-                DecoderBlock(in_c, out_c, conv_kernel_size, pool_kernel_size, up)
+                DecoderBlock(
+                    in_c, out_c, conv_kernel_size, pool_kernel_size, up, residual_blocks
+                )
             )
         self.decoder_blocks = nn.ModuleList(_decoder_blocks)
 
