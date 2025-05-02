@@ -43,8 +43,24 @@ class DecoderBlock(nn.Module):
         in_channels: int,
         out_channels: int,
         conv_kernel_size: Union[int, Tuple[int, int, int]],
+        pool_kernel_size: Union[int, Tuple[int, int, int]],
+        up: str = "interpolate",
     ):
         super().__init__()
+
+        assert up in ["interpolate", "conv"], "up must be 'interpolate' or 'conv'"
+        self.up = up
+        if self.up == "conv":
+            if isinstance(pool_kernel_size, int):
+                double_pks = pool_kernel_size * 2
+            else:
+                double_pks = [pks * 2 for pks in pool_kernel_size]
+            self.transpose_conv = nn.ConvTranspose3d(
+                in_channels, out_channels, double_pks, pool_kernel_size
+            )
+            in_channels = out_channels * 2
+        elif self.up == "interpolate":
+            in_channels = in_channels + out_channels
 
         self.double_conv = nn.Sequential(
             nn.Conv3d(in_channels, out_channels, conv_kernel_size, padding=1),
@@ -56,6 +72,9 @@ class DecoderBlock(nn.Module):
         )
 
     def forward(self, x: torch.Tensor, skip: torch.Tensor) -> torch.Tensor:
+        if self.up == "conv":
+            x = self.transpose_conv(x)
+        # fixes mismatching in temporal dimension if up == conv
         size = skip.size()[2:]
         x = F.interpolate(x, size=size, mode="nearest")
         x = torch.cat((skip, x), dim=1)
@@ -80,9 +99,11 @@ class UNet3D(nn.Module):
         conv_kernel_size: int = 3,
         pool_kernel_size: int = 2,
         final_activation: Optional[Callable] = None,
+        up: str = "interpolate",
     ):
         super().__init__()
         self.features = [in_channels, *features]
+        self.up = up
 
         _encoder_blocks = []
         for i in range(len(self.features) - 1):
@@ -100,6 +121,7 @@ class UNet3D(nn.Module):
         for i in range(len(self.features) - 1, 1, -1):
             in_c = self.features[i]
             out_c = self.features[i - 1]
+            _decoder_blocks.append(DecoderBlock(in_c, out_c, conv_kernel_size, up))
         self.decoder_blocks = nn.ModuleList(_decoder_blocks)
 
         self.final_conv = nn.Conv3d(self.features[1], num_classes, 1)
@@ -129,6 +151,7 @@ if __name__ == "__main__":
         1,
         features=[32, 64, 128, 256],
         pool_kernel_size=(2, 2, 2),
+        up="conv",
         final_activation=nn.Sigmoid(),
     ).to(device)
     y = unet(x)
