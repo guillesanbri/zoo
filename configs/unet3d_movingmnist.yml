@@ -8,14 +8,20 @@ train:
   checkpoint_every_x_epochs: 25
   device: "cuda"
   num_workers: 4
-  batch_size: 16
+  batch_size: 32
   epochs: 100
   warmup_epochs: 10
-  lr: 1.0e-4
+  lr: 1.0e-3
   
 model:
   architecture: "unet3d"
   in_channels: 1
   num_classes: 1
-  depth: 4
-  first_layer_features: 64
+  up: "conv"
+  residual_blocks: true
+  dropout: 0.2
+  features:
+    - 64
+    - 128
+    - 256
+    - 512
