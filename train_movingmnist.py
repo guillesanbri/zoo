@@ -86,8 +86,11 @@ def main(cfg: Dict[str, Any], wandb_run) -> None:
     model = UNet3D(
         in_channels=cfg["model"]["in_channels"],
         num_classes=cfg["model"]["num_classes"],
-        depth=cfg["model"]["depth"],
-        first_layer_features=cfg["model"]["first_layer_features"],
+        features=cfg["model"]["features"],
+        up=cfg["model"]["up"],
+        residual_blocks=cfg["model"]["residual_blocks"],
+        final_activation=nn.Sigmoid(),
+        dropout=cfg["model"]["dropout"],
     ).to(device)
 
     # training-related initializations
@@ -98,12 +101,19 @@ def main(cfg: Dict[str, Any], wandb_run) -> None:
     # TODO: Clean this up
     # TODO: Add data aug, regulatization
     # train_loader, val_loader = get_dataloaders(cfg["data"], cfg["train"])
-    transforms = v2.Compose(
-        [v2.ToDtype(torch.float32, scale=True), v2.Normalize(mean=(0.5,), std=(0.5,))]
+    train_transforms = v2.Compose(
+        [
+            v2.ToDtype(torch.float32, scale=True),
+            v2.RandomRotation(90, fill=0.0),
+            # v2.RandomVerticalFlip(),
+            # v2.RandomHorizontalFlip(),
+        ]
     )
-    data = MovingMNIST("data", download=True, transform=transforms)
-    train_data = Subset(data, list(range(0, 9000)))
-    val_data = Subset(data, list(range(9000, 10000)))
+    val_transforms = v2.Compose([v2.ToDtype(torch.float32, scale=True)])
+    tdata = MovingMNIST("data", download=True, transform=train_transforms)
+    vdata = MovingMNIST("data", download=True, transform=val_transforms)
+    train_data = Subset(tdata, list(range(0, 9000)))
+    val_data = Subset(vdata, list(range(9000, 10000)))
     train_loader = DataLoader(
         train_data, batch_size=cfg["train"]["batch_size"], shuffle=True, num_workers=4
     )
