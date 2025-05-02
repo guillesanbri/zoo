@@ -14,6 +14,7 @@ class EncoderBlock(nn.Module):
         pool_kernel_size: Union[int, Tuple[int, int, int]],
         downsample: bool = True,
         residual_block: bool = True,
+        dropout: float = 0.0,
     ):
         super().__init__()
         self.downsample = downsample
@@ -32,9 +33,11 @@ class EncoderBlock(nn.Module):
             nn.Conv3d(in_channels, out_channels, conv_kernel_size, padding=1),
             nn.BatchNorm3d(out_channels),
             nn.ReLU(),
+            nn.Dropout3d(p=dropout),
             nn.Conv3d(out_channels, out_channels, conv_kernel_size, padding=1),
             nn.BatchNorm3d(out_channels),
             nn.ReLU(),
+            nn.Dropout3d(p=dropout),
         )
 
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -55,6 +58,7 @@ class DecoderBlock(nn.Module):
         pool_kernel_size: Union[int, Tuple[int, int, int]],
         up: str = "interpolate",
         residual_block: bool = True,
+        dropout: float = 0,
     ):
         super().__init__()
         assert up in ["interpolate", "conv"], "up must be 'interpolate' or 'conv'"
@@ -80,9 +84,11 @@ class DecoderBlock(nn.Module):
             nn.Conv3d(in_channels, out_channels, conv_kernel_size, padding=1),
             nn.BatchNorm3d(out_channels),
             nn.ReLU(),
+            nn.Dropout3d(p=dropout),
             nn.Conv3d(out_channels, out_channels, conv_kernel_size, padding=1),
             nn.BatchNorm3d(out_channels),
             nn.ReLU(),
+            nn.Dropout3d(p=dropout),
         )
 
     def forward(self, x: torch.Tensor, skip: torch.Tensor) -> torch.Tensor:
@@ -118,6 +124,7 @@ class UNet3D(nn.Module):
         final_activation: Optional[Callable] = None,
         up: str = "interpolate",
         residual_blocks: bool = True,
+        dropout: float = 0.0,
     ):
         super().__init__()
         self.features = [in_channels, *features]
@@ -136,6 +143,7 @@ class UNet3D(nn.Module):
                     pool_kernel_size,
                     downsample,
                     residual_blocks,
+                    dropout,
                 )
             )
         self.encoder_blocks = nn.ModuleList(_encoder_blocks)
@@ -146,7 +154,13 @@ class UNet3D(nn.Module):
             out_c = self.features[i - 1]
             _decoder_blocks.append(
                 DecoderBlock(
-                    in_c, out_c, conv_kernel_size, pool_kernel_size, up, residual_blocks
+                    in_c,
+                    out_c,
+                    conv_kernel_size,
+                    pool_kernel_size,
+                    up,
+                    residual_blocks,
+                    dropout,
                 )
             )
         self.decoder_blocks = nn.ModuleList(_decoder_blocks)
